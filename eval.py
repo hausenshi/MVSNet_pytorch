@@ -71,7 +71,9 @@ def read_mask(filename):
 
 # save a binary mask
 def save_mask(filename, mask):
-    assert mask.dtype == np.bool
+    # use the lastest version of numpy
+    #assert mask.dtype == np.bool
+    assert mask.dtype == bool
     mask = mask.astype(np.uint8) * 255
     Image.fromarray(mask).save(filename)
 
@@ -99,17 +101,20 @@ def save_depth():
     # model
     model = MVSNet(refine=False)
     model = nn.DataParallel(model)
-    model.cuda()
+    # move to cpu
+    # model.cuda()
 
     # load checkpoint file specified by args.loadckpt
     print("loading model {}".format(args.loadckpt))
-    state_dict = torch.load(args.loadckpt)
+    # disable cuda
+    state_dict = torch.load(args.loadckpt, map_location=torch.device('cpu'))
     model.load_state_dict(state_dict['model'])
     model.eval()
 
     with torch.no_grad():
         for batch_idx, sample in enumerate(TestImgLoader):
-            sample_cuda = tocuda(sample)
+            #sample_cuda = tocuda(sample)
+            sample_cuda = sample
             outputs = model(sample_cuda["imgs"], sample_cuda["proj_matrices"], sample_cuda["depth_values"])
             outputs = tensor2numpy(outputs)
             del sample_cuda
@@ -299,7 +304,7 @@ def filter_depth(scan_folder, out_folder, plyfilename):
 
 if __name__ == '__main__':
     # step1. save all the depth maps and the masks in outputs directory
-    # save_depth()
+    save_depth()
 
     with open(args.testlist) as f:
         scans = f.readlines()
