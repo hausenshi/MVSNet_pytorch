@@ -153,6 +153,7 @@ def load_cam(file, interval_scale=1):
 
     return cam
 
+# process the camera parameters to the text file for each photo
 def write_cam(file, cam):
     # f = open(file, "w")
     f = file_io.FileIO(file, "w")
